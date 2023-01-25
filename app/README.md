@@ -1,0 +1,11 @@
+# app_chat_gpt
+
+A new Flutter project.
+
+### BUG EM RELACAO A CAPTURA DE AUDIO DO APP ###
+
+add -lc++
+
+to your XCode > Runner > Target > Buld Settings > All > Linking > Other LInker Flags
+
+just add and it does resolves your bug
