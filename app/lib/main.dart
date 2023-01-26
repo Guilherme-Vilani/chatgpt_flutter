@@ -114,7 +114,7 @@ class _MyHomePageState extends State<MyHomePage> {
             },
             icon: const Icon(
               Icons.delete,
-              color: Colors.red,
+              color: Colors.white,
             ),
           ),
         ],
@@ -129,48 +129,111 @@ class _MyHomePageState extends State<MyHomePage> {
                 shrinkWrap: true,
                 itemCount: listaPerguntasRespostas.length,
                 itemBuilder: ((context, index) {
-                  return InkWell(
-                    onTap: () async {
-                      print(listaPerguntasRespostas[index].toString());
-                      flutterTts
-                          .speak(listaPerguntasRespostas[index].toString());
-                    },
-                    onLongPress: () async {
-                      // await ClipboardManager.copyToClipBoard(
-                      //     listaPerguntasRespostas[index].toString());
-                      Clipboard.setData(
-                        ClipboardData(
-                          text: listaPerguntasRespostas[index].toString(),
-                        ),
-                      );
-                      toast("Texto copiado para área de transferência");
-                    },
-                    child: Container(
-                      margin: EdgeInsets.only(bottom: 10),
-                      padding: const EdgeInsets.all(10),
-                      decoration: const BoxDecoration(
-                        border: Border(
-                          top: BorderSide(
-                              width: 1.0, color: Color(0xFFFF000000)),
-                          left: BorderSide(
-                              width: 1.0, color: Color(0xFFFF000000)),
-                          right: BorderSide(
-                              width: 1.0, color: Color(0xFFFF000000)),
-                          bottom: BorderSide(
-                              width: 1.0, color: Color(0xFFFF000000)),
-                        ),
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(5),
+                  return Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      InkWell(
+                        splashColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        onTap: () async {
+                          print(listaPerguntasRespostas[index].toString());
+                          if (som) {
+                            flutterTts.speak(listaPerguntasRespostas[index]
+                                    ["resposta"]
+                                .toString());
+                          }
+                        },
+                        onDoubleTap: () {
+                          Clipboard.setData(
+                            ClipboardData(
+                              text: listaPerguntasRespostas[index].toString(),
+                            ),
+                          );
+
+                          snackBar(
+                            context,
+                            title: 'Texto copiado para área de transferência',
+                            behavior: SnackBarBehavior.floating,
+                            textColor: Colors.blue,
+                            backgroundColor: Colors.white,
+                            elevation: 10,
+                            // snackBarAction:
+                            //     SnackBarAction(label: "teste", onPressed: (() {})),
+                            margin: EdgeInsets.all(16),
+                            duration: 2.seconds,
+                          );
+                        },
+
+                        // se a gente apagar esse container e colocar o aligment no contianer de baico ele nao vai respentar o width
+                        child: Container(
+                          alignment: listaPerguntasRespostas[index]
+                                      ["alignment"] ==
+                                  "right"
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
+                          margin: const EdgeInsets.only(bottom: 10),
+                          // color: Colors.red,
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            width: MediaQuery.of(context).size.width * 0.7,
+                            decoration: const BoxDecoration(
+                              border: Border(
+                                top: BorderSide(
+                                    width: 1.0, color: Color(0xFFFF000000)),
+                                left: BorderSide(
+                                    width: 1.0, color: Color(0xFFFF000000)),
+                                right: BorderSide(
+                                    width: 1.0, color: Color(0xFFFF000000)),
+                                bottom: BorderSide(
+                                    width: 1.0, color: Color(0xFFFF000000)),
+                              ),
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(5),
+                              ),
+                            ),
+                            child: Text(
+                              listaPerguntasRespostas[index]["resposta"]
+                                  .toString(),
+                              style: const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                      child: Text(
-                        listaPerguntasRespostas[index].toString(),
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
+                      Container(
+                        padding: EdgeInsets.only(bottom: 10),
+                        alignment: listaPerguntasRespostas[index]
+                                    ["alignment"] ==
+                                "right"
+                            ? Alignment.centerLeft
+                            : Alignment.centerRight,
+                        child: IconButton(
+                          onPressed: () {
+                            Clipboard.setData(
+                              ClipboardData(
+                                text: listaPerguntasRespostas[index].toString(),
+                              ),
+                            );
+
+                            snackBar(
+                              context,
+                              title: 'Texto copiado para área de transferência',
+                              behavior: SnackBarBehavior.floating,
+                              textColor: Colors.blue,
+                              backgroundColor: Colors.white,
+                              elevation: 10,
+                              // snackBarAction:
+                              //     SnackBarAction(label: "teste", onPressed: (() {})),
+                              margin: EdgeInsets.all(16),
+                              duration: 2.seconds,
+                            );
+                          },
+                          icon: Icon(Icons.copy),
                         ),
-                      ),
-                    ),
+                      )
+                    ],
                   );
                 }),
               ),
@@ -207,7 +270,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                   onPressed: onChanged == ""
                                       ? null
                                       : () async {
-                                          await enviaMensagem(
+                                          enviaMensagem(
                                               mensagemController.text);
                                         },
                                   icon: const Icon(Icons.send),
@@ -239,7 +302,6 @@ class _MyHomePageState extends State<MyHomePage> {
                         children: [
                           Container(
                             padding: const EdgeInsets.only(right: 50),
-                            // color: Colors.red,
                             child: TextField(
                               keyboardType: TextInputType.multiline,
                               maxLines: null,
@@ -261,9 +323,8 @@ class _MyHomePageState extends State<MyHomePage> {
                             child: IconButton(
                               onPressed: onChanged == ""
                                   ? null
-                                  : () async {
-                                      await enviaMensagem(
-                                          mensagemController.text);
+                                  : () {
+                                      enviaMensagem(mensagemController.text);
                                     },
                               icon: const Icon(Icons.send),
                             ),
@@ -297,15 +358,20 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() => _isListening = false);
       _speech!.stop();
       // onChanged = mensagemController.text;
-      await enviaMensagem(mensagemFalada);
+      enviaMensagem(mensagemFalada);
     }
   }
 
-  enviaMensagem(String mensagem) async {
+  void enviaMensagem(String mensagem) async {
     await flutterTts.setVoice({"name": "Luciana", "locale": "pt-BR"});
 
     setState(() {
-      listaPerguntasRespostas.add(mensagem);
+      dynamic objeto = {
+        "alignment": "right",
+        "resposta": mensagem,
+      };
+
+      listaPerguntasRespostas.add(objeto);
       mensagemController.text = "";
       onChanged = "";
     });
@@ -320,10 +386,16 @@ class _MyHomePageState extends State<MyHomePage> {
         String resposta = jsonDecode(utf8.decode(response.bodyBytes));
 
         if (resposta != "") {
+          dynamic objeto = {
+            "alignment": "left",
+            "resposta": resposta,
+          };
           setState(() {
-            listaPerguntasRespostas.add(resposta);
+            listaPerguntasRespostas.add(objeto);
           });
-          await speak(resposta);
+          if (som) {
+            await speak(resposta);
+          }
         }
       });
     } catch (e) {
