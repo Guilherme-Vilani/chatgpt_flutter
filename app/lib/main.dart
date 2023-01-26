@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:http/http.dart' as http;
@@ -44,7 +46,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
   FlutterTts flutterTts = FlutterTts();
   List listaPerguntasRespostas = [];
   String onChanged = "";
@@ -81,7 +82,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     await flutterTts.setVolume(0);
                   },
                   icon: const Icon(
-                    Icons.volume_off,
+                    Icons.volume_up,
                     color: Colors.white,
                   ),
                 )
@@ -92,9 +93,14 @@ class _MyHomePageState extends State<MyHomePage> {
                     });
 
                     await flutterTts.setVolume(1);
+
+                    // String text = listaPerguntasRespostas[
+                    //     listaPerguntasRespostas.length - 1];
+
+                    // await flutterTts.speak(text);
                   },
                   icon: const Icon(
-                    Icons.volume_up,
+                    Icons.volume_off,
                     color: Colors.white,
                   ),
                 ),
@@ -123,28 +129,46 @@ class _MyHomePageState extends State<MyHomePage> {
                 shrinkWrap: true,
                 itemCount: listaPerguntasRespostas.length,
                 itemBuilder: ((context, index) {
-                  return Container(
-                    margin: EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.all(10),
-                    decoration: const BoxDecoration(
-                      border: Border(
-                        top: BorderSide(width: 1.0, color: Color(0xFFFF000000)),
-                        left:
-                            BorderSide(width: 1.0, color: Color(0xFFFF000000)),
-                        right:
-                            BorderSide(width: 1.0, color: Color(0xFFFF000000)),
-                        bottom:
-                            BorderSide(width: 1.0, color: Color(0xFFFF000000)),
+                  return InkWell(
+                    onTap: () async {
+                      print(listaPerguntasRespostas[index].toString());
+                      flutterTts
+                          .speak(listaPerguntasRespostas[index].toString());
+                    },
+                    onLongPress: () async {
+                      // await ClipboardManager.copyToClipBoard(
+                      //     listaPerguntasRespostas[index].toString());
+                      Clipboard.setData(
+                        ClipboardData(
+                          text: listaPerguntasRespostas[index].toString(),
+                        ),
+                      );
+                      toast("Texto copiado para área de transferência");
+                    },
+                    child: Container(
+                      margin: EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.all(10),
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          top: BorderSide(
+                              width: 1.0, color: Color(0xFFFF000000)),
+                          left: BorderSide(
+                              width: 1.0, color: Color(0xFFFF000000)),
+                          right: BorderSide(
+                              width: 1.0, color: Color(0xFFFF000000)),
+                          bottom: BorderSide(
+                              width: 1.0, color: Color(0xFFFF000000)),
+                        ),
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(5),
+                        ),
                       ),
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(5),
-                      ),
-                    ),
-                    child: Text(
-                      listaPerguntasRespostas[index].toString(),
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
+                      child: Text(
+                        listaPerguntasRespostas[index].toString(),
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   );
@@ -156,11 +180,11 @@ class _MyHomePageState extends State<MyHomePage> {
               child: onChanged == ""
                   ? Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         Container(
                           alignment: Alignment.center,
-                          width: MediaQuery.of(context).size.width * 0.78,
+                          width: MediaQuery.of(context).size.width * 0.75,
                           child: Stack(
                             children: [
                               TextField(
@@ -208,26 +232,32 @@ class _MyHomePageState extends State<MyHomePage> {
                       ],
                     )
                   : Container(
-                      alignment: Alignment.center,
+                      alignment: Alignment.bottomCenter,
                       width: MediaQuery.of(context).size.width * 1,
                       child: Stack(
+                        alignment: Alignment.center,
                         children: [
-                          TextField(
-                            autofocus: true,
-                            controller: mensagemController,
-                            decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                              labelText: 'Escreva aqui',
+                          Container(
+                            padding: const EdgeInsets.only(right: 50),
+                            // color: Colors.red,
+                            child: TextField(
+                              keyboardType: TextInputType.multiline,
+                              maxLines: null,
+                              autofocus: true,
+                              controller: mensagemController,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Escreva aqui',
+                              ),
+                              onChanged: (value) {
+                                setState(() {
+                                  onChanged = value;
+                                });
+                              },
                             ),
-                            onChanged: (value) {
-                              setState(() {
-                                onChanged = value;
-                              });
-                            },
                           ),
-                          Positioned(
-                            right: 0,
-                            top: 5,
+                          Align(
+                            alignment: Alignment.centerRight,
                             child: IconButton(
                               onPressed: onChanged == ""
                                   ? null
@@ -248,7 +278,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _listen() async {
+  _listen() async {
     if (!_isListening) {
       bool available = await _speech!.initialize(
         onStatus: (val) => print('onStatus: $val'),
@@ -260,18 +290,13 @@ class _MyHomePageState extends State<MyHomePage> {
           localeId: "pt-BR",
           onResult: (val) => setState(() {
             mensagemFalada = val.recognizedWords;
-            // print("MENSAGEM FALADA NO IF =====> " + mensagemFalada);
-
-            // if (val.hasConfidenceRating && val.confidence > 0) {
-            //   // _confidence = val.confidence;
-            // }
           }),
         );
       }
     } else {
       setState(() => _isListening = false);
-      // print("MENSAGEM FALADA =====> " + mensagemFalada);
       _speech!.stop();
+      // onChanged = mensagemController.text;
       await enviaMensagem(mensagemFalada);
     }
   }
@@ -285,37 +310,24 @@ class _MyHomePageState extends State<MyHomePage> {
       onChanged = "";
     });
 
+    await flutterTts.setVolume(1);
+
     try {
       await http
           .post(Uri.parse(
-              "http://192.168.0.102:8000/envia-mensagem?mensagem=$mensagem"))
-          .then((http.Response response) {
+              "http://192.168.0.100:8000/envia-mensagem?mensagem=$mensagem"))
+          .then((http.Response response) async {
         String resposta = jsonDecode(utf8.decode(response.bodyBytes));
 
         if (resposta != "") {
           setState(() {
             listaPerguntasRespostas.add(resposta);
           });
-          speak(resposta);
+          await speak(resposta);
         }
       });
     } catch (e) {
-      // toast(
-      //   "Erro ao enviar mensagem",
-      //   bgColor: Colors.red,
-      //   gravity: ToastGravity.SNACKBAR,
-      // );
-
-      // snackBar(
-      //   context,
-      //   title: 'Sample toast',
-      //   textColor: Colors.blue,
-      //   backgroundColor: Colors.white,
-      //   elevation: 8,
-      //   shape: RoundedRectangleBorder(borderRadius: radius(30)),
-      //   margin: EdgeInsets.all(16),
-      //   duration: 3.seconds,
-      // );
+      print(e);
     }
   }
 }

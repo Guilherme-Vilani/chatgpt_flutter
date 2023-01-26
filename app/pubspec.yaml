@@ -46,6 +46,7 @@ dependencies:
   highlight_text: ^1.6.0
   avatar_glow: ^2.0.2
 
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
