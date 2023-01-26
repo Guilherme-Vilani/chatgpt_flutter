@@ -1,6 +1,9 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:app_chat_gpt/components/drawer/drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_sound/flutter_sound.dart';
@@ -68,6 +71,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: DrawerContent(),
       appBar: AppBar(
         title: Text(widget.title),
         actions: [
@@ -77,7 +81,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     setState(() {
                       som = false;
                     });
-
                     await flutterTts.stop();
                     await flutterTts.setVolume(0);
                   },
@@ -93,11 +96,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     });
 
                     await flutterTts.setVolume(1);
-
-                    // String text = listaPerguntasRespostas[
-                    //     listaPerguntasRespostas.length - 1];
-
-                    // await flutterTts.speak(text);
                   },
                   icon: const Icon(
                     Icons.volume_off,
@@ -136,7 +134,6 @@ class _MyHomePageState extends State<MyHomePage> {
                         splashColor: Colors.transparent,
                         highlightColor: Colors.transparent,
                         onTap: () async {
-                          print(listaPerguntasRespostas[index].toString());
                           if (som) {
                             flutterTts.speak(listaPerguntasRespostas[index]
                                     ["resposta"]
@@ -213,7 +210,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           onPressed: () {
                             Clipboard.setData(
                               ClipboardData(
-                                text: listaPerguntasRespostas[index].toString(),
+                                text: listaPerguntasRespostas[index]["resposta"]
+                                    .toString(),
                               ),
                             );
 
@@ -226,7 +224,8 @@ class _MyHomePageState extends State<MyHomePage> {
                               elevation: 10,
                               // snackBarAction:
                               //     SnackBarAction(label: "teste", onPressed: (() {})),
-                              margin: EdgeInsets.all(16),
+                              // margin: EdgeInsets.all(16),
+                              width: MediaQuery.of(context).size.width * 0.9,
                               duration: 2.seconds,
                             );
                           },
@@ -399,7 +398,19 @@ class _MyHomePageState extends State<MyHomePage> {
         }
       });
     } catch (e) {
-      print(e);
+      snackBar(
+        context,
+        width: MediaQuery.of(context).size.width * 0.8,
+        title: 'Não foi possível conectar ao servidor',
+        behavior: SnackBarBehavior.floating,
+        textColor: Colors.white,
+        backgroundColor: Colors.red,
+        elevation: 10,
+        // snackBarAction:
+        //     SnackBarAction(label: "teste", onPressed: (() {})),
+        // margin: EdgeInsets.all(16),
+        duration: 2.seconds,
+      );
     }
   }
 }
