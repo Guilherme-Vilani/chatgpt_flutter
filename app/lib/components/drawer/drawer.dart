@@ -1,6 +1,8 @@
+import 'package:app_chat_gpt/components/flipCard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:nb_utils/nb_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DrawerContent extends StatefulWidget {
@@ -30,7 +32,7 @@ class _DrawerContentState extends State<DrawerContent> {
               margin: EdgeInsets.all(20),
               child: Image.asset(
                 filterQuality: FilterQuality.high,
-                "assets/images/lampada3.png",
+                "assets/images/lampada.png",
                 fit: BoxFit.cover,
                 // width: MediaQuery.of(context).size.width * 0.5,
               ),
@@ -40,7 +42,7 @@ class _DrawerContentState extends State<DrawerContent> {
           Padding(
             padding: const EdgeInsets.only(right: 8.0, left: 8.0, top: 8.0),
             child: ListTile(
-              leading: Image.asset("assets/images/github1.png"),
+              leading: Image.asset("assets/images/github.png"),
               title: Text("Link para o projeto no GitHub"),
               onTap: () async {
                 const url =
@@ -50,6 +52,17 @@ class _DrawerContentState extends State<DrawerContent> {
                 } else {
                   throw 'Could not launch $url';
                 }
+              },
+            ),
+          ),
+          Divider(),
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0, left: 8.0, top: 8.0),
+            child: ListTile(
+              leading: Image.asset("assets/images/github.png"),
+              title: Text("Flip Card"),
+              onTap: () async {
+                FlipCard().launch(context);
               },
             ),
           ),
