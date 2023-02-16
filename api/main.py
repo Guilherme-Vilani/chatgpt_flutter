@@ -1,40 +1,26 @@
 import openai
 from dotenv import load_dotenv
 import os
-import json
 from fastapi import FastAPI
 import firebase_admin
 from firebase_admin import messaging
 from firebase_admin import credentials
 
+#Controllers
+from Controllers.mensagem_controller import Route_Mensagens
+
+
 cred = credentials.Certificate("serviceAccountKey.json")
 firebase_admin.initialize_app(cred)
-
-
-
-app = FastAPI()
-
 load_dotenv('.env')
 openai.api_key = os.getenv("API_KEY")
 
-@app.post("/envia-mensagem")
-def envia_mensagem(mensagem: str):
-    def generate_text(mensagem):
-        completions = openai.Completion.create(
-            engine="text-davinci-003",
-            prompt=mensagem,
-            max_tokens=1024,
-            n=1,
-            stop=None,
-            temperature=0.5,
-        )
 
-        message = completions.choices[0].text
-        return message.strip()
+app = FastAPI(title="CHATGPT WITH FASTAPI",
+    description="Documentação da API do chatbot GPT-3 com FastAPI",
+    version="1.0.0")
 
-    # exemplo de uso
-    generated_text = generate_text(mensagem)
-    return generated_text
+app.include_router(Route_Mensagens, prefix='/api/mensagem', tags=["Mensagens"])
 
 @app.post("/dispara-push")
 def apns_message():

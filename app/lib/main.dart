@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -16,14 +17,6 @@ import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter/material.dart';
 import 'package:highlight_text/highlight_text.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
-
-// Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-//   // If you're going to use other Firebase services in the background, such as Firestore,
-//   // make sure you call `initializeApp` before using other Firebase services.
-//   await Firebase.initializeApp();
-
-//   print("Handling a background message: ${message.messageId}");
-// }
 
 getToken() async {
   String token = "";
@@ -98,6 +91,13 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _isListening = false;
   String mensagemFalada = "";
   String token = "";
+  bool escrevendo = false;
+  late AnimationController _animationController;
+
+  int numeroReticencias = 0;
+
+  String urlApiServer = "http://54.147.99.83:8081/api";
+  String urlApiLocal = "http://192.168.0.104:8000/api";
 
   Future speak(String mensagem) async {
     await flutterTts.speak(mensagem);
@@ -370,17 +370,35 @@ class _MyHomePageState extends State<MyHomePage> {
                               },
                             ),
                           ),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: IconButton(
-                              onPressed: onChanged == ""
-                                  ? null
-                                  : () {
-                                      enviaMensagem(mensagemController.text);
+                          escrevendo == false
+                              ? Align(
+                                  alignment: Alignment.centerRight,
+                                  child: IconButton(
+                                    onPressed: onChanged == ""
+                                        ? null
+                                        : () {
+                                            enviaMensagem(
+                                                mensagemController.text);
+                                          },
+                                    icon: const Icon(Icons.send),
+                                  ),
+                                )
+                              : Container(
+                                  child: AnimatedBuilder(
+                                    animation: _animationController,
+                                    builder:
+                                        (BuildContext context, Widget? child) {
+                                      String reticencias =
+                                          "." * numeroReticencias;
+                                      return Text(
+                                        "$reticencias",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                        ),
+                                      );
                                     },
-                              icon: const Icon(Icons.send),
-                            ),
-                          ),
+                                  ),
+                                )
                         ],
                       ),
                     ),
@@ -417,6 +435,16 @@ class _MyHomePageState extends State<MyHomePage> {
   void enviaMensagem(String mensagem) async {
     await flutterTts.setVoice({"name": "Luciana", "locale": "pt-BR"});
 
+    Timer.periodic(Duration(milliseconds: 500), (timer) {
+      setState(() {
+        if (numeroReticencias < 3) {
+          numeroReticencias++;
+        } else {
+          numeroReticencias = 0;
+        }
+      });
+    });
+
     setState(() {
       dynamic objeto = {
         "alignment": "right",
@@ -426,14 +454,16 @@ class _MyHomePageState extends State<MyHomePage> {
       listaPerguntasRespostas.add(objeto);
       mensagemController.text = "";
       onChanged = "";
+
+      escrevendo = true;
     });
 
     await flutterTts.setVolume(1);
 
     try {
       await http
-          .post(Uri.parse(
-              "http://192.168.0.101:8000/envia-mensagem?mensagem=$mensagem"))
+          .post(Uri.parse("$urlApiLocal/mensagem/envia-mensagem"),
+              body: "$mensagem")
           .then((http.Response response) async {
         String resposta = jsonDecode(utf8.decode(response.bodyBytes));
 
@@ -444,6 +474,7 @@ class _MyHomePageState extends State<MyHomePage> {
           };
           setState(() {
             listaPerguntasRespostas.add(objeto);
+            escrevendo = false;
           });
           if (som) {
             await speak(resposta);
@@ -459,9 +490,6 @@ class _MyHomePageState extends State<MyHomePage> {
         textColor: Colors.white,
         backgroundColor: Colors.red,
         elevation: 10,
-        // snackBarAction:
-        //     SnackBarAction(label: "teste", onPressed: (() {})),
-        // margin: EdgeInsets.all(16),
         duration: 2.seconds,
       );
     }

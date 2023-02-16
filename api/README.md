@@ -28,4 +28,8 @@ passo 3:
 
 passo 4:
     sudo yum install docker-compose
+    pip3 install docker-compose
+
+passo 5:
+    sudo docker-compose up -d
 
