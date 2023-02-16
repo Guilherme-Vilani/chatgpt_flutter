@@ -1,0 +1,12 @@
+version: "3.7"
+  
+services:
+  fast-api:
+    build: ./
+    container_name: Api-EngSpy
+    image: apiengspy
+    restart: always
+    ports:
+      - "8081:8081"
+    env_file:
+      - .env
