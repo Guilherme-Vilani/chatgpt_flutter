@@ -1,4 +1,5 @@
+fastapi
 python-dotenv
 openai
-fastapi
+uvicorn
 firebase-admin
