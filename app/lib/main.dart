@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:app_chat_gpt/components/drawer/drawer.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_sound/flutter_sound.dart';
@@ -15,8 +17,46 @@ import 'package:flutter/material.dart';
 import 'package:highlight_text/highlight_text.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
-void main() {
+// Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+//   // If you're going to use other Firebase services in the background, such as Firestore,
+//   // make sure you call `initializeApp` before using other Firebase services.
+//   await Firebase.initializeApp();
+
+//   print("Handling a background message: ${message.messageId}");
+// }
+
+getToken() async {
+  String token = "";
+  await FirebaseMessaging.instance.getToken().then((value) {
+    token = value.toString();
+  });
+
+  return token;
+}
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+  NotificationSettings settings = await messaging.requestPermission(
+    alert: true,
+    announcement: false,
+    badge: true,
+    carPlay: false,
+    criticalAlert: false,
+    provisional: false,
+    sound: true,
+  );
+
+  if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+    print('User granted permission');
+  } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
+    print('User granted provisional permission');
+  } else {
+    print('User declined or has not accepted permission');
+  }
+
   runApp(
     const MyApp(),
   );
@@ -57,6 +97,7 @@ class _MyHomePageState extends State<MyHomePage> {
   stt.SpeechToText? _speech;
   bool _isListening = false;
   String mensagemFalada = "";
+  String token = "";
 
   Future speak(String mensagem) async {
     await flutterTts.speak(mensagem);
@@ -65,7 +106,18 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   initState() {
     super.initState();
+
     _speech = stt.SpeechToText();
+    init();
+  }
+
+  init() async {
+    token = await getToken();
+    Clipboard.setData(
+      ClipboardData(
+        text: token,
+      ),
+    );
   }
 
   @override
@@ -121,6 +173,7 @@ class _MyHomePageState extends State<MyHomePage> {
         padding: const EdgeInsets.all(10),
         child: Column(
           children: [
+            // Text(token),
             Expanded(
               flex: 4,
               child: ListView.builder(
@@ -380,7 +433,7 @@ class _MyHomePageState extends State<MyHomePage> {
     try {
       await http
           .post(Uri.parse(
-              "http://192.168.0.100:8000/envia-mensagem?mensagem=$mensagem"))
+              "http://192.168.0.101:8000/envia-mensagem?mensagem=$mensagem"))
           .then((http.Response response) async {
         String resposta = jsonDecode(utf8.decode(response.bodyBytes));
 
